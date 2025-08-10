@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+  <Transactions>
+    <Transaction>2025/08/10 13:20:03.562,=C:\Users\mengf\Documents\Embarcadero\Studio\Projects\Project1PCH1.h</Transaction>
+    <Transaction>2025/08/10 13:20:03.853,=C:\Users\mengf\Documents\Embarcadero\Studio\Projects\Unit1.cpp</Transaction>
+    <Transaction>2025/08/10 13:20:51.283,D:\Projects\WCG\source\CornCobSortingSystem\CornCobSortingSystemPCH1.h=C:\Users\mengf\Documents\Embarcadero\Studio\Projects\Project1PCH1.h</Transaction>
+    <Transaction>2025/08/10 13:20:51.305,D:\Projects\WCG\source\CornCobSortingSystem\Unit1.dfm=C:\Users\mengf\Documents\Embarcadero\Studio\Projects\Unit1.dfm</Transaction>
+    <Transaction>2025/08/10 13:20:51.305,D:\Projects\WCG\source\CornCobSortingSystem\Unit1.cpp=C:\Users\mengf\Documents\Embarcadero\Studio\Projects\Unit1.cpp</Transaction>
+    <Transaction>2025/08/10 13:20:51.305,D:\Projects\WCG\source\CornCobSortingSystem\Unit1.h=C:\Users\mengf\Documents\Embarcadero\Studio\Projects\Unit1.h</Transaction>
+    <Transaction>2025/08/10 13:20:51.315,D:\Projects\WCG\source\CornCobSortingSystem\CornCobSortingSystem.cbproj=C:\Users\mengf\Documents\Embarcadero\Studio\Projects\Project1.cbproj</Transaction>
+    <Transaction>2025/08/10 13:21:04.421,D:\Projects\WCG\source\CornCobSortingSystem\MainFrame.cpp=D:\Projects\WCG\source\CornCobSortingSystem\Unit1.cpp</Transaction>
+    <Transaction>2025/08/10 13:21:04.421,D:\Projects\WCG\source\CornCobSortingSystem\MainFrame.h=D:\Projects\WCG\source\CornCobSortingSystem\Unit1.h</Transaction>
+    <Transaction>2025/08/10 13:21:04.421,D:\Projects\WCG\source\CornCobSortingSystem\MainFrame.dfm=D:\Projects\WCG\source\CornCobSortingSystem\Unit1.dfm</Transaction>
+    <Transaction>2025/08/10 13:21:12.897,D:\Projects\WCG\source\CornCobSortingSystem\CornCobSortingSystem.cbproj=D:\Projects\WCG\source\CornCobSortingSystem\CornCobSortingSystem.cbproj</Transaction>
+  </Transactions>
+</BorlandProject>
