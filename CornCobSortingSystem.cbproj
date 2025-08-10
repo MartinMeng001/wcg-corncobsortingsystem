@@ -97,6 +97,7 @@
         <IncludePath>D:\Projects\WCG\source\CornCobSortingSystem\;$(IncludePath)</IncludePath>
         <ILINK_LibraryPath>D:\Projects\WCG\source\CornCobSortingSystem\;$(ILINK_LibraryPath)</ILINK_LibraryPath>
         <SanitizedProjectName>CornCobSortingSystem</SanitizedProjectName>
+        <Custom_Styles>&quot;Windows10 Dark|VCLSTYLE|$(BDSCOMMONDIR)\Styles\Windows10Dark.vsf&quot;</Custom_Styles>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win32)'!=''">
         <PackageImports>adortl;appanalytics;bcbie;bcbsmp;bindcomp;bindcompdbx;bindcompfmx;bindcompvcl;bindcompvclsmp;bindcompvclwinx;bindengine;CloudService;CustomIPTransport;DataSnapClient;DataSnapCommon;DataSnapConnectors;DatasnapConnectorsFreePascal;DataSnapFireDAC;DataSnapIndy10ServerTransport;DataSnapNativeClient;DataSnapProviderClient;DataSnapServer;DataSnapServerMidas;dbexpress;dbrtl;dbxcds;DbxClientDriver;DbxCommonDriver;DBXDb2Driver;DBXFirebirdDriver;DBXInformixDriver;DBXInterBaseDriver;DBXMSSQLDriver;DBXMySQLDriver;DBXOdbcDriver;DBXOracleDriver;DBXSqliteDriver;DBXSybaseASADriver;DBXSybaseASEDriver;dsnap;dsnapcon;dsnapxml;emsclient;emsclientfiredac;emsedge;emshosting;emsserverresource;FireDAC;FireDACADSDriver;FireDACASADriver;FireDACCommon;FireDACCommonDriver;FireDACCommonODBC;FireDACDb2Driver;FireDACDBXDriver;FireDACDSDriver;FireDACIBDriver;FireDACInfxDriver;FireDACMongoDBDriver;FireDACMSAccDriver;FireDACMSSQLDriver;FireDACMySQLDriver;FireDACODBCDriver;FireDACOracleDriver;FireDACPgDriver;FireDACSqliteDriver;FireDACTDataDriver;fmx;fmxase;fmxdae;fmxFireDAC;fmxobj;IndyCore;IndyIPClient;IndyIPCommon;IndyIPServer;IndyProtocols;IndySystem;inet;inetdb;inetdbxpress;RESTBackendComponents;RESTComponents;rtl;Skia;soapmidas;soaprtl;soapserver;tethering;vcl;vclactnband;vcldb;vcldsnap;vcledge;vclFireDAC;vclie;vclimg;VCLRESTComponents;VclSmp;vcltouch;vclwinx;vclx;xmlrtl;$(PackageImports)</PackageImports>
@@ -156,7 +157,11 @@
         <AppDPIAwarenessMode>PerMonitorV2</AppDPIAwarenessMode>
         <LinkPackageImports>rtl.bpi;vcl.bpi</LinkPackageImports>
         <BCC_UseClassicCompiler>false</BCC_UseClassicCompiler>
-        <ILINK_LibraryPath>$(BDSLIB)\$(PLATFORM)$(CC_SUFFIX)\debug;$(ILINK_LibraryPath)</ILINK_LibraryPath>
+        <ILINK_LibraryPath>$(BDSLIB)\$(PLATFORM)$(CC_SUFFIX)\debug;D:\vcpkg\vcpkg\installed\x86-windows\debug\lib;$(ILINK_LibraryPath)</ILINK_LibraryPath>
+        <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
+        <VerInfo_Locale>1033</VerInfo_Locale>
+        <BCC_IncludePath>D:\vcpkg\vcpkg\installed\x86-windows\include;$(BCC_IncludePath)</BCC_IncludePath>
+        <IncludePath>D:\vcpkg\vcpkg\installed\x86-windows\include\modbus;$(IncludePath)</IncludePath>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_1_Win64)'!=''">
         <AppDPIAwarenessMode>PerMonitorV2</AppDPIAwarenessMode>
@@ -192,7 +197,39 @@
             <DependentOn>MainFrame.h</DependentOn>
             <BuildOrder>2</BuildOrder>
         </CppCompile>
+        <CppCompile Include="MainFramePresenter.cpp">
+            <VirtualFolder>{9DC83C05-FC85-4E23-9949-2979A3A57C36}</VirtualFolder>
+            <DependentOn>MainFramePresenter.h</DependentOn>
+            <BuildOrder>5</BuildOrder>
+        </CppCompile>
+        <CppCompile Include="ModernQualityDetectionPresenter.cpp">
+            <VirtualFolder>{9DC83C05-FC85-4E23-9949-2979A3A57C36}</VirtualFolder>
+            <DependentOn>ModernQualityDetectionPresenter.h</DependentOn>
+            <BuildOrder>9</BuildOrder>
+        </CppCompile>
+        <CppCompile Include="QualityDetector.cpp">
+            <VirtualFolder>{2F1F3DCF-B8F5-4C6C-8633-99827C0E7500}</VirtualFolder>
+            <DependentOn>QualityDetector.h</DependentOn>
+            <BuildOrder>6</BuildOrder>
+        </CppCompile>
+        <CppCompile Include="TBasePresenter.cpp">
+            <VirtualFolder>{EB9B2345-0647-48F7-9385-6F773F1B174E}</VirtualFolder>
+            <DependentOn>TBasePresenter.h</DependentOn>
+            <BuildOrder>3</BuildOrder>
+        </CppCompile>
+        <CppCompile Include="TBaseQualityDetectionPresenter.cpp">
+            <VirtualFolder>{EB9B2345-0647-48F7-9385-6F773F1B174E}</VirtualFolder>
+            <DependentOn>TBaseQualityDetectionPresenter.h</DependentOn>
+            <BuildOrder>9</BuildOrder>
+        </CppCompile>
+        <CppCompile Include="TestQualityDetecotor.cpp">
+            <Form>Form2</Form>
+            <FormType>dfm</FormType>
+            <DependentOn>TestQualityDetecotor.h</DependentOn>
+            <BuildOrder>7</BuildOrder>
+        </CppCompile>
         <FormResources Include="MainFrame.dfm"/>
+        <FormResources Include="TestQualityDetecotor.dfm"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>
@@ -219,6 +256,21 @@
                 <Source>
                     <Source Name="MainSource">CornCobSortingSystem.cpp</Source>
                 </Source>
+                <VFOLDERS>
+                    <VFOLDER ID="{9E010E3B-A550-417C-B384-6A043F9C9F93}" name="Detector">
+                        <VFOLDER ID="{2F1F3DCF-B8F5-4C6C-8633-99827C0E7500}" name="Quality"/>
+                    </VFOLDER>
+                    <VFOLDER ID="{954C4F17-FBCB-411D-82ED-42146E2F194C}" name="Style">
+                        <VFOLDER ID="{EB9B2345-0647-48F7-9385-6F773F1B174E}" name="base"/>
+                        <VFOLDER ID="{9DC83C05-FC85-4E23-9949-2979A3A57C36}" name="ModernPresenter"/>
+                    </VFOLDER>
+                </VFOLDERS>
+                <Excluded_Packages>
+                    <Excluded_Packages Name="$(BDSBIN)\bcboffice2k290.bpl">Embarcadero C++Builder Office 2000 Servers Package</Excluded_Packages>
+                    <Excluded_Packages Name="$(BDSBIN)\bcbofficexp290.bpl">Embarcadero C++Builder Office XP Servers Package</Excluded_Packages>
+                    <Excluded_Packages Name="$(BDSBIN)\dcloffice2k290.bpl">Microsoft Office 2000 Sample Automation Server Wrapper Components</Excluded_Packages>
+                    <Excluded_Packages Name="$(BDSBIN)\dclofficexp290.bpl">Microsoft Office XP Sample Automation Server Wrapper Components</Excluded_Packages>
+                </Excluded_Packages>
             </CPlusPlusBuilder.Personality>
             <Deployment Version="4">
                 <DeployFile Condition="'$(DynamicRTL)'=='true'" LocalName="$(BDS)\Redist\osx32\libcgcrtl.dylib" Class="DependencyModule">

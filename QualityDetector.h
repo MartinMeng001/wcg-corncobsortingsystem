@@ -3,12 +3,13 @@
 
 #include <vcl.h>
 #include <modbus.h>
+#include <modbus-tcp.h>  // 添加TCP特定的头文件
 #include <vector>
 #include <map>
 
-// 协议地址定义
+// 寄存器地址定义
 #define DETECTION_CONTROL_ADDR      102  // 检测控制位
-#define REFERENCE_CONTROL_ADDR      103  // 参比控制位
+#define REFERENCE_CONTROL_ADDR      103  // 参考控制位
 #define EXCEPTION_ADDR              109  // 异常位
 #define SERIAL_NUMBER_ADDR          110  // 流水号
 #define DETECTION_RESULT_START_ADDR 111  // 检测结果起始地址
@@ -17,7 +18,7 @@
 // 控制命令定义
 #define CMD_START_DETECTION         1    // 开始检测
 #define CMD_STOP_DETECTION          0    // 停止检测
-#define CMD_START_REFERENCE         1    // 开始采集参比
+#define CMD_START_REFERENCE         1    // 开始采集参考
 
 // 状态定义
 #define STATUS_COLLECTING           1    // 采集中
@@ -30,7 +31,7 @@ enum DetectionType {
     ACIDITY = 1,           // 酸度
     MOISTURE = 2,          // 水分
     HARDNESS = 3,          // 硬度
-    // 可根据实际需要扩展
+    // 可根据实际需求添加更多检测项目
 };
 
 // 检测结果结构
@@ -73,7 +74,7 @@ public:
     // 状态查询
     int GetDetectionStatus();
     int GetReferenceStatus();
-    int GetExceptionCode();
+    int GetModbusExceptionCode();
     int GetSerialNumber();
 
     // 检测结果读取
@@ -81,7 +82,7 @@ public:
     bool ReadDetectionResult(int address, double& value);
     std::vector<double> ReadAllDetectionResults();
 
-    // 设备状态检查
+    // 设备状态检测
     bool CheckDeviceStatus();
     bool IsDeviceReady();
 
@@ -102,8 +103,8 @@ public:
 private:
     // 内部辅助函数
     bool WriteRegister(int address, int value);
-    bool ReadRegister(int address, int& value);
-    bool ReadRegisters(int startAddress, int count, std::vector<int>& values);
+    bool ReadRegister(int address, uint16_t& value);  // 修正：使用uint16_t
+    bool ReadRegisters(int startAddress, int count, std::vector<uint16_t>& values);  // 修正：使用uint16_t
     void __fastcall OnPollTimer(TObject* Sender);
     void HandleError(const AnsiString& operation);
 };

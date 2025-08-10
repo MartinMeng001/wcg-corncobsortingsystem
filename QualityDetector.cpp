@@ -8,6 +8,10 @@
 #include "QualityDetector.h"
 #include <DateUtils.hpp>
 #include <SysUtils.hpp>
+#include "modbus-tcp.h"  // 包含TCP相关的头文件
+
+#pragma link "modbus_omf.lib"
+#pragma link "ws2_32.lib"
 
 QualityDetector::QualityDetector()
     : modbusContext(nullptr), isConnected(false), pollTimer(nullptr),
@@ -34,24 +38,37 @@ bool QualityDetector::Connect(const AnsiString& ip, int port, int deviceId) {
         // 创建TCP连接上下文
         modbusContext = modbus_new_tcp(ip.c_str(), port);
         if (!modbusContext) {
-            if (onError) onError(-1, "Failed to create Modbus context");
+            if (onError) onError(-1, "Failed to create Modbus TCP context");
             return false;
         }
 
-        // 设置设备ID
+        // 设置设备ID (slave地址)
         if (modbus_set_slave(modbusContext, deviceId) == -1) {
-            if (onError) onError(-2, "Failed to set device ID");
+            if (onError) onError(-2, AnsiString("Failed to set slave ID: ") + modbus_strerror(errno));
             modbus_free(modbusContext);
             modbusContext = nullptr;
             return false;
         }
 
-        // 设置连接超时（3秒）
-        modbus_set_response_timeout(modbusContext, 3, 0);
+        // 设置响应超时时间 (3秒)
+        if (modbus_set_response_timeout(modbusContext, 3, 0) == -1) {
+            if (onError) onError(-3, AnsiString("Failed to set response timeout: ") + modbus_strerror(errno));
+            modbus_free(modbusContext);
+            modbusContext = nullptr;
+            return false;
+        }
+
+        // 设置字节超时时间
+        if (modbus_set_byte_timeout(modbusContext, 1, 0) == -1) {
+            if (onError) onError(-4, AnsiString("Failed to set byte timeout: ") + modbus_strerror(errno));
+            modbus_free(modbusContext);
+            modbusContext = nullptr;
+            return false;
+        }
 
         // 建立连接
         if (modbus_connect(modbusContext) == -1) {
-            if (onError) onError(-3, AnsiString("Connection failed: ") + modbus_strerror(errno));
+            if (onError) onError(-5, AnsiString("Connection failed: ") + modbus_strerror(errno));
             modbus_free(modbusContext);
             modbusContext = nullptr;
             return false;
@@ -64,7 +81,7 @@ bool QualityDetector::Connect(const AnsiString& ip, int port, int deviceId) {
 
         // 检查设备状态
         if (!CheckDeviceStatus()) {
-            if (onError) onError(-4, "Device status check failed");
+            if (onError) onError(-6, "Device status check failed");
             Disconnect();
             return false;
         }
@@ -73,6 +90,10 @@ bool QualityDetector::Connect(const AnsiString& ip, int port, int deviceId) {
     }
     catch (const Exception& e) {
         if (onError) onError(-99, AnsiString("Connection exception: ") + e.Message);
+        if (modbusContext) {
+            modbus_free(modbusContext);
+            modbusContext = nullptr;
+        }
         return false;
     }
 }
@@ -112,33 +133,33 @@ bool QualityDetector::StartReferenceCollection() {
 }
 
 int QualityDetector::GetDetectionStatus() {
-    int status = -1;
+    uint16_t status;
     if (isConnected && ReadRegister(DETECTION_CONTROL_ADDR, status)) {
-        return status;
+        return static_cast<int>(status);
     }
     return -1;
 }
 
 int QualityDetector::GetReferenceStatus() {
-    int status = -1;
+    uint16_t status;
     if (isConnected && ReadRegister(REFERENCE_CONTROL_ADDR, status)) {
-        return status;
+        return static_cast<int>(status);
     }
     return -1;
 }
 
-int QualityDetector::GetExceptionCode() {
-    int code = -1;
+int QualityDetector::GetModbusExceptionCode() {
+    uint16_t code;
     if (isConnected && ReadRegister(EXCEPTION_ADDR, code)) {
-        return code;
+        return static_cast<int>(code);
     }
     return -1;
 }
 
 int QualityDetector::GetSerialNumber() {
-    int serialNumber = -1;
+    uint16_t serialNumber;
     if (isConnected && ReadRegister(SERIAL_NUMBER_ADDR, serialNumber)) {
-        return serialNumber;
+        return static_cast<int>(serialNumber);
     }
     return -1;
 }
@@ -151,10 +172,10 @@ bool QualityDetector::ReadDetectionResults(DetectionResult& result) {
         result.serialNumber = GetSerialNumber();
 
         // 读取异常码
-        result.exceptionCode = GetExceptionCode();
+        result.exceptionCode = this->GetModbusExceptionCode();
 
         // 读取检测结果
-        std::vector<int> rawValues;
+        std::vector<uint16_t> rawValues;
         int resultCount = DETECTION_RESULT_END_ADDR - DETECTION_RESULT_START_ADDR + 1;
 
         if (!ReadRegisters(DETECTION_RESULT_START_ADDR, resultCount, rawValues)) {
@@ -184,7 +205,7 @@ bool QualityDetector::ReadDetectionResults(DetectionResult& result) {
 bool QualityDetector::ReadDetectionResult(int address, double& value) {
     if (!isConnected) return false;
 
-    int rawValue;
+    uint16_t rawValue;
     if (ReadRegister(address, rawValue)) {
         value = ConvertToActualValue(rawValue);
         return true;
@@ -197,11 +218,11 @@ std::vector<double> QualityDetector::ReadAllDetectionResults() {
 
     if (!isConnected) return results;
 
-    std::vector<int> rawValues;
+    std::vector<uint16_t> rawValues;
     int resultCount = DETECTION_RESULT_END_ADDR - DETECTION_RESULT_START_ADDR + 1;
 
     if (ReadRegisters(DETECTION_RESULT_START_ADDR, resultCount, rawValues)) {
-        for (int rawValue : rawValues) {
+        for (uint16_t rawValue : rawValues) {
             results.push_back(ConvertToActualValue(rawValue));
         }
     }
@@ -222,7 +243,7 @@ bool QualityDetector::IsDeviceReady() {
 }
 
 void QualityDetector::StartPolling(int interval) {
-    if (interval < 50) interval = 50; // 最小50ms间隔，符合协议要求
+    if (interval < 50) interval = 50; // 最小50ms间隔，防止性能问题
 
     pollTimer->Interval = interval;
     pollTimer->Enabled = true;
@@ -276,7 +297,13 @@ bool QualityDetector::WriteRegister(int address, int value) {
     if (!isConnected || !modbusContext) return false;
 
     try {
-        int result = modbus_write_register(modbusContext, address, value);
+        // 确保value在uint16_t范围内
+        if (value < 0 || value > 65535) {
+            if (onError) onError(-10, "Value out of range for uint16_t");
+            return false;
+        }
+
+        int result = modbus_write_register(modbusContext, address, static_cast<const uint16_t>(value));
         if (result == -1) {
             HandleError("WriteRegister");
             return false;
@@ -289,17 +316,15 @@ bool QualityDetector::WriteRegister(int address, int value) {
     }
 }
 
-bool QualityDetector::ReadRegister(int address, int& value) {
+bool QualityDetector::ReadRegister(int address, uint16_t& value) {
     if (!isConnected || !modbusContext) return false;
 
     try {
-        uint16_t regValue;
-        int result = modbus_read_holding_registers(modbusContext, address, 1, &regValue);
+        int result = modbus_read_registers(modbusContext, address, 1, &value);
         if (result == -1) {
             HandleError("ReadRegister");
             return false;
         }
-        value = static_cast<int>(regValue);
         return true;
     }
     catch (...) {
@@ -308,22 +333,29 @@ bool QualityDetector::ReadRegister(int address, int& value) {
     }
 }
 
-bool QualityDetector::ReadRegisters(int startAddress, int count, std::vector<int>& values) {
+bool QualityDetector::ReadRegisters(int startAddress, int count, std::vector<uint16_t>& values) {
     if (!isConnected || !modbusContext) return false;
 
     try {
-        std::vector<uint16_t> regValues(count);
-        int result = modbus_read_holding_registers(modbusContext, startAddress, count, regValues.data());
+        // 检查读取数量是否在允许范围内
+        if (count <= 0 || count > MODBUS_MAX_READ_REGISTERS) {
+            if (onError) onError(-11, "Register count out of range");
+            return false;
+        }
+
+        values.resize(count);
+        int result = modbus_read_registers(modbusContext, startAddress, count, values.data());
         if (result == -1) {
             HandleError("ReadRegisters");
             return false;
         }
 
-        values.clear();
-        values.reserve(count);
-        for (uint16_t regValue : regValues) {
-            values.push_back(static_cast<int>(regValue));
+        // 检查实际读取的数量
+        if (result != count) {
+            if (onError) onError(-12, "Partial read - expected " + IntToStr(count) + ", got " + IntToStr(result));
+            values.resize(result);  // 调整vector大小
         }
+
         return true;
     }
     catch (...) {
@@ -335,24 +367,40 @@ bool QualityDetector::ReadRegisters(int startAddress, int count, std::vector<int
 void __fastcall QualityDetector::OnPollTimer(TObject* Sender) {
     if (!isConnected) return;
 
-    // 检查检测状态
-    int detectionStatus = GetDetectionStatus();
+    static int lastDetectionStatus = -1;
 
-    // 如果检测完成，读取结果
-    if (detectionStatus == STATUS_SUCCESS && onDetectionComplete) {
-        DetectionResult result;
-        if (ReadDetectionResults(result)) {
-            onDetectionComplete(result);
+    try {
+        // 检查检测状态
+        int detectionStatus = GetDetectionStatus();
+
+        // 如果检测完成，读取结果
+        if (detectionStatus == STATUS_SUCCESS &&
+            lastDetectionStatus != STATUS_SUCCESS &&
+            onDetectionComplete) {
+
+            DetectionResult result;
+            if (ReadDetectionResults(result)) {
+                onDetectionComplete(result);
+            }
+        }
+
+        // 通知状态变化
+        if (detectionStatus != lastDetectionStatus && onStatusChanged) {
+            onStatusChanged(detectionStatus);
+            lastDetectionStatus = detectionStatus;
         }
     }
-
-    // 通知状态变化
-    if (onStatusChanged) {
-        onStatusChanged(detectionStatus);
+    catch (...) {
+        HandleError("Poll Timer Exception");
     }
 }
 
 void QualityDetector::HandleError(const AnsiString& operation) {
+    if (!modbusContext) {
+        if (onError) onError(-20, operation + ": No modbus context");
+        return;
+    }
+
     if (onError) {
         AnsiString errorMsg = AnsiString(operation) + " failed: " + modbus_strerror(errno);
         onError(errno, errorMsg);
